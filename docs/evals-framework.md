@@ -46,3 +46,47 @@ Because Ekah splits fast read-only execution (`S1.5`) from deep multi-turn reaso
 
 * **Parameter Sweeps (`param_sweep.py`):** Systematically sweeps temperature, token limits, and model variants across targeted suites to find the optimal latency/quality Pareto frontier.
 * **Judge + Synthesis (`--judge` / `--synthesize`):** Combines deterministic pass/fail assertions with an LLM judge for open-ended quality rubrics, then synthesizes failure clusters into an actionable summary and HTML comparison dashboard (`dashboard.html`).
+
+---
+
+## 5. Sample Eval Cases (`evals/cases.yaml`)
+
+Each eval case is declared in YAML and supports deterministic checks (`classify`, `tool_select`, `json_format`, `boolean`), multi-turn flows (`multi_turn`), and LLM-judged generation (`generate`):
+
+```yaml
+- id: 1
+  suite: routing
+  name: "HA control with pronouns"
+  type: classify
+  input: "turn it off"
+  expected:
+    topic: TOPIC_HOME
+  tags: [pronoun, past-bug]
+
+- id: 2
+  suite: routing
+  name: "Ambiguous light — false positive"
+  type: classify
+  input: "that article shed light on things"
+  expected:
+    topic_not: TOPIC_HOME
+  tags: [false-positive]
+
+- id: 3
+  suite: routing
+  name: "Security vs Home priority"
+  type: classify
+  input: "lock the front door"
+  expected:
+    topic: TOPIC_SECURITY
+  tags: [priority]
+
+- id: 4
+  suite: routing
+  name: "Multi-topic compound query"
+  type: classify
+  input: "what's the weather and turn on the lights"
+  expected:
+    topic_any: [TOPIC_INFO, TOPIC_HOME]
+  tags: [compound]
+```

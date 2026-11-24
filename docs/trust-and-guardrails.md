@@ -56,3 +56,80 @@ When `ToolCallGate` returns `NEEDS_CONFIRMATION`:
 * **Multi-Modal Identity & Guest Onboarding (`identity/`):** Maps messaging IDs and voice biometrics (`VoiceIdentityManager` with 3-tier matching) to a `TrustTier` via `TrustResolver`, with explicit `check_guest_privacy()` guards so guest sessions cannot access resident context.
 * **Liveness Detection (`LivenessDetector`):** Uses spectral flatness and media playback state to reject spoofed/TV audio from triggering voice commands.
 * **Graceful Degradation (`DegradationMonitor`):** Monitors downstream service health and degrades cleanly to offline/read-only modes without crashing the core conversational loop.
+
+---
+
+## 4. Code Excerpt: Policy Matrix (`authority/tool_gate.py`)
+
+Below is the actual policy structure enforced outside the LLM before any tool is dispatched:
+
+```python
+class TrustTier(StrEnum):
+    """Fine-grained trust tiers for senders."""
+
+    OWNER = "owner"
+    RESIDENT = "resident"
+    TRUSTED_GUEST = "trusted_guest"
+    GUEST = "guest"
+    UNTRUSTED = "untrusted"
+
+
+class ToolSensitivity(StrEnum):
+    """Sensitivity classification for agent tools."""
+
+    READ_ONLY = "read_only"
+    WRITE_SAFE = "write_safe"
+    WRITE_DESTRUCTIVE = "write_destructive"
+    EXTERNAL = "external"
+    HOME_CONTROL = "home_control"
+    PERSONAL_DATA = "personal_data"
+    OWNER_ONLY = "owner_only"
+
+
+class GateDecision(StrEnum):
+    """Result of the tool-call gate check."""
+
+    ALLOWED = "allowed"
+    NEEDS_CONFIRMATION = "needs_confirmation"
+    DENIED = "denied"
+
+
+_POLICY: dict[TrustTier, dict[ToolSensitivity, GateDecision]] = {
+    TrustTier.OWNER: {
+        ToolSensitivity.READ_ONLY: GateDecision.ALLOWED,
+        ToolSensitivity.WRITE_SAFE: GateDecision.ALLOWED,
+        ToolSensitivity.WRITE_DESTRUCTIVE: GateDecision.ALLOWED,
+        ToolSensitivity.EXTERNAL: GateDecision.ALLOWED,
+        ToolSensitivity.HOME_CONTROL: GateDecision.ALLOWED,
+        ToolSensitivity.PERSONAL_DATA: GateDecision.ALLOWED,
+        ToolSensitivity.OWNER_ONLY: GateDecision.ALLOWED,
+    },
+    TrustTier.RESIDENT: {
+        ToolSensitivity.READ_ONLY: GateDecision.ALLOWED,
+        ToolSensitivity.WRITE_SAFE: GateDecision.ALLOWED,
+        ToolSensitivity.WRITE_DESTRUCTIVE: GateDecision.NEEDS_CONFIRMATION,
+        ToolSensitivity.EXTERNAL: GateDecision.NEEDS_CONFIRMATION,
+        ToolSensitivity.HOME_CONTROL: GateDecision.ALLOWED,
+        ToolSensitivity.PERSONAL_DATA: GateDecision.NEEDS_CONFIRMATION,
+        ToolSensitivity.OWNER_ONLY: GateDecision.DENIED,
+    },
+    TrustTier.TRUSTED_GUEST: {
+        ToolSensitivity.READ_ONLY: GateDecision.ALLOWED,
+        ToolSensitivity.WRITE_SAFE: GateDecision.NEEDS_CONFIRMATION,
+        ToolSensitivity.WRITE_DESTRUCTIVE: GateDecision.DENIED,
+        ToolSensitivity.EXTERNAL: GateDecision.DENIED,
+        ToolSensitivity.HOME_CONTROL: GateDecision.NEEDS_CONFIRMATION,  # lights/climate only
+        ToolSensitivity.PERSONAL_DATA: GateDecision.DENIED,
+        ToolSensitivity.OWNER_ONLY: GateDecision.DENIED,
+    },
+    TrustTier.GUEST: {
+        ToolSensitivity.READ_ONLY: GateDecision.ALLOWED,
+        ToolSensitivity.WRITE_SAFE: GateDecision.DENIED,
+        ToolSensitivity.WRITE_DESTRUCTIVE: GateDecision.DENIED,
+        ToolSensitivity.EXTERNAL: GateDecision.DENIED,
+        ToolSensitivity.HOME_CONTROL: GateDecision.DENIED,
+        ToolSensitivity.PERSONAL_DATA: GateDecision.DENIED,
+        ToolSensitivity.OWNER_ONLY: GateDecision.DENIED,
+    },
+}
+```

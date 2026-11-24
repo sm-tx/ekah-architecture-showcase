@@ -76,3 +76,47 @@ In parallel with primary intent routing, the local NLU extracts passive signals 
 * **Behavioral Proactive Outreach (`ProactiveWakeup` & `CognitiveAvailability`):** Proactive suggestions are gated on user availability and context rather than rigid cron schedules, reducing notification fatigue.
 * **Context Compilation (`KnowledgeCompiler`):** A 30-second background loop compiles per-user context snapshots so `S1.5` and `S2` start with compact, relevant state instead of raw database dumps.
 * **Multi-User Conflict & Graceful Degradation:** `ConflictDetector` / `CrossTalkDetector` handle simultaneous multi-user inputs, while `DegradationMonitor` tracks service health to keep core flows operational during partial outages.
+
+---
+
+## 5. Code Excerpt: Cognitive Routing Tiers (`gate/orchestrator.py`)
+
+Below is the sanitized core routing contract showing how every event is assigned to a tier (`SYSTEM_1`, `SYSTEM_1_5`, `SYSTEM_2`, `DEFERRED`, or `DROPPED`) with bounded queue depth and an emergency delta bypass:
+
+```python
+class RoutingTier(StrEnum):
+    """Which processing tier the orchestrator routes an event to."""
+
+    SYSTEM_1 = "system_1"      # Compiled macro (no LLM)
+    SYSTEM_1_5 = "system_1_5"  # Fast Conversational LLM (read-only)
+    SYSTEM_2 = "system_2"      # Frontal Lobe (Heavy LLM reasoning)
+    DEFERRED = "deferred"      # Budget exhausted -> overnight queue
+    DROPPED = "dropped"        # Suppressed by thalamic gate
+
+
+@dataclass(frozen=True)
+class RoutingDecision:
+    """The orchestrator's routing decision for an event."""
+
+    tier: RoutingTier
+    event: ScoredEvent
+    gravity_score: GravityScore | None = None
+    reason: str = ""
+
+
+@dataclass
+class VerificationResult:
+    """Outcome verification for a completed action."""
+
+    confirmed: bool
+    expected_state: str = ""
+    actual_state: str = ""
+    reason: str = ""
+
+
+# Maximum queue depth to prevent unbounded memory growth.
+MAX_QUEUE_SIZE = 1000
+
+# Events at or above this delta bypass budget exhaustion.
+EMERGENCY_DELTA_THRESHOLD = 0.85
+```
