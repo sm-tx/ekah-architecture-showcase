@@ -1,4 +1,4 @@
-# Ekah — 0-to-1 Agentic System Architecture, Guardrails & Evals Showcase
+# Ekah — Agentic System Architecture, Guardrails & Evals Showcase
 
 > *Note: LLMs were used to help draft and structure this documentation from the underlying system design.*
 
