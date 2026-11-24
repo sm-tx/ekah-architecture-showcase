@@ -46,7 +46,9 @@ Because Ekah splits fast read-only execution (`S1.5`) from deep multi-turn reaso
 
 * **Parameter Sweeps (`param_sweep.py`):** Systematically sweeps temperature, token limits, and model variants across targeted suites to find the optimal latency/quality Pareto frontier.
 * **Judge + Synthesis (`--judge` / `--synthesize`):** Combines deterministic pass/fail assertions with an LLM judge for open-ended quality rubrics, then synthesizes failure clusters into an actionable summary (verdict, strengths, root-cause weaknesses, latency assessment, recommendation).
-* **Self-Contained HTML Dashboard (`dashboard.py`):** Aggregates run JSONs from `evals/runs/` alongside `cases.yaml` expectations into a single-file comparison dashboard (see [docs/sample-eval-dashboard.html](./sample-eval-dashboard.html) for a sanitized preview).
+* **Self-Contained HTML Dashboard (`dashboard.py`):** Aggregates run JSONs from `evals/runs/` alongside `cases.yaml` expectations into a single-file comparison dashboard (sanitized preview below).
+
+![Ekah Eval Dashboard Preview](../assets/eval-dashboard-preview.png)
 
 ### Example Console Scorecard Output
 

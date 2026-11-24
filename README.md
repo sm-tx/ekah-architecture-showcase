@@ -16,7 +16,6 @@
 | **[docs/architecture.md](./docs/architecture.md)** | Deep dive into the 3-module pipeline (`Sensory Router → Synth-Brain → Auditory Router`), cognitive tiering (`Tier 0` → `S1.5` → `S2`), NLU side-channels, and proactive/memory loops. |
 | **[docs/trust-and-guardrails.md](./docs/trust-and-guardrails.md)** | Deep dive into `ToolCallGate` (`TrustTier × ToolSensitivity` matrix), `NEEDS_CONFIRMATION` approval flows, identity/liveness checks, and graceful degradation. |
 | **[docs/evals-framework.md](./docs/evals-framework.md)** | Deep dive into the 619-case / 45-category eval suite, role-based candidate testing (`S1.5` vs. `S2`), multi-provider benchmarking, and parameter sweeps. |
-| **[docs/sample-eval-dashboard.html](./docs/sample-eval-dashboard.html)** | Sanitized HTML preview of the eval comparison dashboard (`dashboard.py`) showing role gates, latency/cost tradeoffs, and failure diagnostics. |
 
 ---
 
@@ -53,6 +52,8 @@ Every new feature or model change is governed by a **619-case evaluation suite a
 * **Production-Identical Prompts:** Evals import the exact prompt builders from `synth-brain` so test results reflect production behavior.
 * **Role-Based Benchmarking:** Models are tested specifically as **`S1.5` candidates** (where `S2` cases verify *escalation accuracy*) or **`S2` candidates** (scoring JSON compliance, parallel tool calling, and multi-turn stop conditions).
 * **Multi-Metric Capture:** Every run tracks **latency**, **token usage**, **cost per call**, and **rubric/judge pass rate**, with parameter sweeps (`param_sweep.py`) and an HTML comparison dashboard.
+
+![Ekah Eval Dashboard Preview](./assets/eval-dashboard-preview.png)
 
 ---
 
