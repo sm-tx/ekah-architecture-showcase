@@ -16,6 +16,7 @@
 | **[docs/architecture.md](./docs/architecture.md)** | Deep dive into the 3-module pipeline (`Sensory Router → Synth-Brain → Auditory Router`), cognitive tiering (`Tier 0` → `S1.5` → `S2`), NLU side-channels, and proactive/memory loops. |
 | **[docs/trust-and-guardrails.md](./docs/trust-and-guardrails.md)** | Deep dive into `ToolCallGate` (`TrustTier × ToolSensitivity` matrix), `NEEDS_CONFIRMATION` approval flows, identity/liveness checks, and graceful degradation. |
 | **[docs/evals-framework.md](./docs/evals-framework.md)** | Deep dive into the 619-case / 45-category eval suite, role-based candidate testing (`S1.5` vs. `S2`), multi-provider benchmarking, and parameter sweeps. |
+| **[docs/sample-eval-dashboard.html](./docs/sample-eval-dashboard.html)** | Sanitized HTML preview of the eval comparison dashboard (`dashboard.py`) showing role gates, latency/cost tradeoffs, and failure diagnostics. |
 
 ---
 

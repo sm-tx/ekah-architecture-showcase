@@ -45,7 +45,43 @@ Because Ekah splits fast read-only execution (`S1.5`) from deep multi-turn reaso
 ## 4. Parameter Sweeps & Regression Analysis
 
 * **Parameter Sweeps (`param_sweep.py`):** Systematically sweeps temperature, token limits, and model variants across targeted suites to find the optimal latency/quality Pareto frontier.
-* **Judge + Synthesis (`--judge` / `--synthesize`):** Combines deterministic pass/fail assertions with an LLM judge for open-ended quality rubrics, then synthesizes failure clusters into an actionable summary and HTML comparison dashboard (`dashboard.html`).
+* **Judge + Synthesis (`--judge` / `--synthesize`):** Combines deterministic pass/fail assertions with an LLM judge for open-ended quality rubrics, then synthesizes failure clusters into an actionable summary (verdict, strengths, root-cause weaknesses, latency assessment, recommendation).
+* **Self-Contained HTML Dashboard (`dashboard.py`):** Aggregates run JSONs from `evals/runs/` alongside `cases.yaml` expectations into a single-file comparison dashboard (see [docs/sample-eval-dashboard.html](./sample-eval-dashboard.html) for a sanitized preview).
+
+### Example Console Scorecard Output
+
+```text
+============================================================
+  SCORECARD: ollama-gemma4_e4b (gemma4:latest)
+============================================================
+  Overall:  5/6 passed (83.3%)
+  S1.5:     2/2 passed (100.0%)
+  S2:       3/4 passed (75.0%)
+  Latency:  15617ms avg | p50=21026ms | p95=37169ms
+  TTFT:     15617ms avg
+  Tokens:   4,625 (7.3 tok/s avg)
+  Cost:     $0.0000
+
+  Suite                  Passed    Total    Score
+  -------------------- -------- -------- --------
+  routing                     3        4    87.5%
+  s1_5                        1        1   100.0%
+  s2                          1        1   100.0%
+
+  FAILED EVALS (1):
+    #  8 Panic keyword routing
+         why: 1/2 checks: Escalation mismatch
+         got: TOPIC_SECURITY
+============================================================
+```
+
+### Dedicated Failure-Mode & Boundary Suites
+Beyond functional domains, the suite explicitly stress-tests common agent failure modes:
+* `tool_selection_failures` (16 cases): wrong tool, missing params, redundant calls, hallucinated entities
+* `entity_resolution` (15 cases): fuzzy matching, ambiguous entities, aliases, domain confusion
+* `multi_step_coherence` (10 cases): mid-plan errors, data preservation, conflicting instructions
+* `s1_5_boundary` (15 cases): write-ops must `<ESCALATE>`, read-ops must not
+* `latency` (4 cases): wall-clock assertions per cognitive tier (`S0.5` / `S1.5` / `S2`)
 
 ---
 
